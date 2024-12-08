@@ -44,6 +44,8 @@ public class Move
     /**
      * @return Returns a two-part array representing the coordinates of this move's ending position.
      */
+    //@ ensures \result != null;
+    //@ pure
     public int[] getEndingPosition()
     {
         int[] position = new int[2];

@@ -30,6 +30,8 @@ public class Piece
     /**
      * @return Returns a two-part array representing the coordinates of this piece's position.
      */
+    //@ ensures \result != null;
+    //@ pure
     public int[] getCoordinates()
     {
         int[] coordinates = new int[2];
