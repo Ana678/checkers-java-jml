@@ -182,11 +182,18 @@ public class Board
      * @param position The single position value, zero indexed at top left.
      * @return A two part int array where [0] is the x coordinate and [1] is the y.
      */
-    //@ requires size > 0;
-    //@ ensures \result.length == 2 && \result[0] == position % size && \result[1] == position / size;
+    //@     requires size > 0;
+    //@     requires 0 <= position && position <= size*(size - 1) + (size - 1); 
+    //@     ensures \result.length == 2;
+    //@     ensures \result[0] == position % size;
+    //@     ensures \result[1] == position / size; 
+    //@     ensures 0 <= \result[0] && \result[0] < size;
+    //@     ensures 0 <= \result[1]; 
+    //@     ensures ((float) \result[1]) < size; 
     //@ also
-    //@ requires 0 <= position < size*size;
-    //@ ensures 0 <= \result[0] < size && 0 <= \result[1] < size;
+    //@     requires size > 0;
+    //@     requires 0 > position || position >= size*size;
+    //@     ensures \result.length == 2 && \result[0] == position % size && \result[1] == position / size;
     //@ pure
     public int[] getCoordinatesFromPosition(int position)
     {
