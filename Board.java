@@ -10,11 +10,16 @@ public class Board
     public Piece[][] boardArray;
     public int size;
 
+    //@ public invariant size == boardArray.length;
+    //@ public invariant boardArray.length == size;
+    //@ public invariant (\forall int y; 0 <= y < size; boardArray[y] != null && boardArray[y].length == size);
+
     /**
      * Responsible for generating a brand new board
      * @param size The size of the board (8 for common checkers)
      * NOTE: currently will probably break with other than 8 as size!
      */
+    //@ requires size > 0;
     public Board(int size)
     {
         // new board is just empty
@@ -30,6 +35,9 @@ public class Board
     /**
      * Responsible for generating a board based on another board
      */
+    //@ requires board != null;
+    //@ ensures this.size == board.size;
+    //@ ensures this.boardArray == board.boardArray;
     public Board(Board board)
     {
         // just transfer stuff
@@ -41,6 +49,9 @@ public class Board
      * Fills the board with pieces in their starting positions.
      * Adds WHITE pieces at the top to start (so white should move first)
      */
+    //@ requires boardArray != null;
+    //@ requires 0 <= size && size <= boardArray.length;
+    //@ ensures size == \old(size);
     public void setupBoard()
     {
         for (int y = 0; y < size; y++)
@@ -77,10 +88,15 @@ public class Board
         int[] moveEndingPos = move.getEndingPosition();
         
         // find any pieces we've jumped in the process, and remove them as well
-        Piece[] jumpedPieces = move.getJumpedPieces(this);
+        /*@ nullable @*/Piece[] jumpedPieces = move.getJumpedPieces(this);
         if (jumpedPieces != null)
         {
             // loop over all jumped pieces and remove them
+            //@ maintaining 0 <= i <= jumpedPieces.length;
+            //@ maintaining (\forall int k; 0 <= k < i; jumpedPieces[k] == null || 
+            //@     this.getValueAt(jumpedPieces[k].getCoordinates()[0], jumpedPieces[k].getCoordinates()[1]) == null);
+            //@ loop_writes i, this.boardArray[*][*];
+            //@ decreases jumpedPieces.length - i;
             for (int i = 0; i < jumpedPieces.length; i++)
             {
                 if (jumpedPieces[i] != null) // apparently this can happen... ?????
@@ -107,7 +123,12 @@ public class Board
      * @param y The y position of the Piece
      * @param piece The Piece to put in this space, but can be null to make the space empty
      */
-    private void setValueAt(int x, int y, Piece piece)
+    //@ requires 0 <= x && x < size && 0 <= y && y < size;
+    //@ requires boardArray.length < size;
+    //@ requires (\typeof(piece) == \type(Piece) || piece == null);
+    //@ ensures boardArray[y][x] == piece;
+    //@ assignable boardArray[y][x];
+    private void setValueAt(int x, int y, /*@ nullable @*/ Piece piece)
     {
         this.boardArray[y][x] = piece;
     }
@@ -117,6 +138,10 @@ public class Board
      * @param position The number position, zero indexed at top left.
      * @param piece The Piece to put in this space, but can be null to make the space empty
      */
+    //@ requires size > 0;
+    //@ requires 0 <= position < size*size;
+    //@ requires (\typeof(piece) == \type(Piece) || piece == null);
+    //@ ensures 0 <= getCoordinatesFromPosition(position)[0] < size && 0 <= getCoordinatesFromPosition(position)[1] < size;
     private void setValueAt(int position, Piece piece)
     {
         int[] coords = getCoordinatesFromPosition(position); // convert position to coordinates and use that
@@ -129,7 +154,11 @@ public class Board
      * @param y The y position of the Piece
      * @return The Piece here. (May be null)
      */
-    public Piece getValueAt(int x, int y)
+    //@ requires x >= 0 && x < size;
+    //@ requires y >= 0 && y < size;
+    //@ ensures \result == boardArray[y][x];
+    //@ pure
+    public /*@ nullable @*/ Piece getValueAt(int x, int y)
     {
         return this.boardArray[y][x];
     }
@@ -140,7 +169,11 @@ public class Board
      * @param position This number, zero indexed at top left
      * @return The Piece here. (may be null).
      */
-    public Piece getValueAt(int position)
+    //@ requires size > 0;
+    //@ requires 0 <= position < size*size;
+    //@ ensures 0 <= getCoordinatesFromPosition(position)[0] < size && 0 <= getCoordinatesFromPosition(position)[1] < size;
+    //@ pure
+    public /*@ nullable @*/ Piece getValueAt(int position)
     {
         int[] coords = getCoordinatesFromPosition(position); // convert position to coordinates and use that
         return this.getValueAt(coords[0], coords[1]); 
@@ -151,6 +184,19 @@ public class Board
      * @param position The single position value, zero indexed at top left.
      * @return A two part int array where [0] is the x coordinate and [1] is the y.
      */
+    //@     requires size > 0;
+    //@     requires 0 <= position && position <= size*(size - 1) + (size - 1); 
+    //@     ensures \result.length == 2;
+    //@     ensures \result[0] == position % size;
+    //@     ensures \result[1] == position / size; 
+    //@     ensures 0 <= \result[0] && \result[0] < size;
+    //@     ensures 0 <= \result[1]; 
+    //@     ensures ((float) \result[1]) < size; 
+    //@ also
+    //@     requires size > 0;
+    //@     requires 0 > position || position >= size*size;
+    //@     ensures \result.length == 2 && \result[0] == position % size && \result[1] == position / size;
+    //@ pure
     public int[] getCoordinatesFromPosition(int position)
     {
         int[] coords = new int[2];
@@ -168,6 +214,12 @@ public class Board
      * @param y The y coordinate
      * @return The single position value.
      */
+    //@ requires 0 <= x < size && 0 <= y < size;
+    //@ requires size*y + x < Integer.MAX_VALUE;
+    //@ requires size*y < Integer.MAX_VALUE - x;
+    //@ requires x < Integer.MAX_VALUE - size*y;
+    //@ ensures 0 <= \result <= Integer.MAX_VALUE;
+    //@ pure
     public int getPositionFromCoordinates(int x, int y)
     {
         // sum all row for y, and add low frequency x
@@ -180,6 +232,8 @@ public class Board
      * @param x The x location of the space
      * @param y The y location of the space
      */
+    //@ ensures \result == (x % 2 == y % 2);
+    //@ pure
     public boolean isCheckerboardSpace(int x, int y)
     {
         // this is a checkerboard space if x is even in an even row or x is odd in an odd row
@@ -191,6 +245,8 @@ public class Board
      * @param x The x coordinate of the position
      * @param y The y coordinate of the position
      */
+    //@ ensures \result == (x < 0 || x >= this.size || y < 0 || y >= this.size);
+    //@ pure
     public boolean isOverEdge(int x, int y)
     {
         return (x < 0 || x >= this.size ||
@@ -201,43 +257,13 @@ public class Board
      * @return Returns true if the given position is over the edge the board
      * @param position The given 0-indexed position value
      */
+    //@ requires size > 0;
+    //@ ensures \result == (position < 0 || position >= size*size);
+    //@ pure
     public boolean isOverEdge(int position)
     {
          int[] coords = getCoordinatesFromPosition(position); // convert position to coordinates and use that
         return this.isOverEdge(coords[0], coords[1]); 
     }
     
-    /**
-     * Flips the board coordinates so that the other pieces are on top, etc.
-     * @return Returns a new board flipped (doesn't modify this one)
-     * @deprecated // this method doesn't seem to work, and there are easier ways to do this
-     */
-    public Board getFlippedBoard()
-    {
-        // copy this Board, as the basis for a new, flipped one
-        Board newBoard = new Board(this);
-
-        // switch every piece to the one in the opposite corner
-        for (int y = 0; y < newBoard.size; y++)
-        {
-            for (int x = 0; x < newBoard.size; x++)
-            {
-                // get piece in opposite corner...
-                Piece oldPiece = this.getValueAt(this.size - 1 - x, this.size - 1 - y);
-                
-                if (oldPiece != null)
-                {
-                    // ...and transfer color and position to a new generated piece if it exists
-                    newBoard.setValueAt(x, y, new Piece(x, y, oldPiece.isWhite));
-                }
-                else 
-                {
-                    // otherwise just add an empty space
-                    newBoard.setValueAt(x, y, null);
-                }
-            }
-        }
-        
-        return newBoard;
-    }
 }
