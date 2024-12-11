@@ -60,6 +60,7 @@ public class Move
     /**
      * @return Returns a two-part array representing the coordinates of this move's ending position.
      */
+    //@ ensures \result != null;
     //@ ensures \result.length==2;
     //@ ensures \result[0] == this.x2;
     //@ ensures \result[1] == this.y2;
@@ -82,6 +83,7 @@ public class Move
     //@ requires board != null;
     //@ ensures !isJump ==> \result == null;
     //@ ensures isJump ==> (\forall int i; 0 <= i < \result.length; \typeof(\result[i]) == \type(Piece));
+
     public Piece[] getJumpedPieces(Board board)
     {
         // if this move wasn't a jump, it didn't jump a piece!

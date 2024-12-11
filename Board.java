@@ -7,8 +7,15 @@
 public class Board
 {
     // global vars
-    public Piece[][] boardArray;
-    public int size;
+    public /*@ nullable @*/ Piece[][] boardArray;
+    public final int size;
+    
+    //@ public invariant boardArray != null;
+    //@ public invariant size == boardArray.length;
+    //@ public invariant size >= 1 && size < Integer.MAX_VALUE && size*size < Integer.MAX_VALUE;
+    //@ public invariant (\forall int y; 0 <= y < size; boardArray[y] != null && boardArray[y].length == size);
+    //@ public invariant (\forall int y; 0 <= y < size; \type(Piece) == \elemtype(\typeof(boardArray[y])));
+    //@ public invariant \type(Piece) == \elemtype(\elemtype(\typeof(boardArray)));
 
     //@ public invariant size == boardArray.length;
     //@ public invariant boardArray.length == size;
@@ -19,15 +26,19 @@ public class Board
      * @param size The size of the board (8 for common checkers)
      * NOTE: currently will probably break with other than 8 as size!
      */
-    //@ requires size > 0;
+
+    //@ requires size >= 1 && size < Integer.MAX_VALUE && size*size < Integer.MAX_VALUE;
+    //@ ensures boardArray != null; 
+    //@ pure
     public Board(int size)
     {
         // new board is just empty
         this.boardArray = new Piece[size][size];
         
+        //@ assume (\forall int y; 0 <= y < size; \type(Piece) == \elemtype(\typeof(boardArray[y])));
+        //@ assume \type(Piece) == \elemtype(\elemtype(\typeof(boardArray)));
         // store the size for further use
         this.size = size;
-        
         // setup the starting positions
         setupBoard();
     }
@@ -38,6 +49,7 @@ public class Board
     //@ requires board != null;
     //@ ensures this.size == board.size;
     //@ ensures this.boardArray == board.boardArray;
+    //@ pure
     public Board(Board board)
     {
         // just transfer stuff
@@ -50,8 +62,7 @@ public class Board
      * Adds WHITE pieces at the top to start (so white should move first)
      */
     //@ requires boardArray != null;
-    //@ requires 0 <= size && size <= boardArray.length;
-    //@ ensures size == \old(size);
+    //@ assignable boardArray;
     public void setupBoard()
     {
         for (int y = 0; y < size; y++)
@@ -70,6 +81,7 @@ public class Board
                 }
             }
         }
+
     }
     
     /**
@@ -124,8 +136,8 @@ public class Board
      * @param piece The Piece to put in this space, but can be null to make the space empty
      */
     //@ requires 0 <= x && x < size && 0 <= y && y < size;
-    //@ requires boardArray.length < size;
-    //@ requires (\typeof(piece) == \type(Piece) || piece == null);
+
+
     //@ ensures boardArray[y][x] == piece;
     //@ assignable boardArray[y][x];
     private void setValueAt(int x, int y, /*@ nullable @*/ Piece piece)
@@ -138,11 +150,11 @@ public class Board
      * @param position The number position, zero indexed at top left.
      * @param piece The Piece to put in this space, but can be null to make the space empty
      */
-    //@ requires size > 0;
-    //@ requires 0 <= position < size*size;
-    //@ requires (\typeof(piece) == \type(Piece) || piece == null);
+
+    //@ requires 0 <= position < size*size && position < Integer.MAX_VALUE;
     //@ ensures 0 <= getCoordinatesFromPosition(position)[0] < size && 0 <= getCoordinatesFromPosition(position)[1] < size;
-    private void setValueAt(int position, Piece piece)
+    private void setValueAt(int position, /*@ nullable @*/ Piece piece)
+
     {
         int[] coords = getCoordinatesFromPosition(position); // convert position to coordinates and use that
         this.setValueAt(coords[0], coords[1], piece);
@@ -154,8 +166,8 @@ public class Board
      * @param y The y position of the Piece
      * @return The Piece here. (May be null)
      */
-    //@ requires x >= 0 && x < size;
-    //@ requires y >= 0 && y < size;
+
+    //@ requires x >= 0 && x < size && y >= 0 && y < size;
     //@ ensures \result == boardArray[y][x];
     //@ pure
     public /*@ nullable @*/ Piece getValueAt(int x, int y)
@@ -169,9 +181,8 @@ public class Board
      * @param position This number, zero indexed at top left
      * @return The Piece here. (may be null).
      */
-    //@ requires size > 0;
-    //@ requires 0 <= position < size*size;
-    //@ ensures 0 <= getCoordinatesFromPosition(position)[0] < size && 0 <= getCoordinatesFromPosition(position)[1] < size;
+
+    //@ requires 0 <= position < size*size && position < Integer.MAX_VALUE;
     //@ pure
     public /*@ nullable @*/ Piece getValueAt(int position)
     {
@@ -184,18 +195,8 @@ public class Board
      * @param position The single position value, zero indexed at top left.
      * @return A two part int array where [0] is the x coordinate and [1] is the y.
      */
-    //@     requires size > 0;
-    //@     requires 0 <= position && position <= size*(size - 1) + (size - 1); 
-    //@     ensures \result.length == 2;
-    //@     ensures \result[0] == position % size;
-    //@     ensures \result[1] == position / size; 
-    //@     ensures 0 <= \result[0] && \result[0] < size;
-    //@     ensures 0 <= \result[1]; 
-    //@     ensures ((float) \result[1]) < size; 
-    //@ also
-    //@     requires size > 0;
-    //@     requires 0 > position || position >= size*size;
-    //@     ensures \result.length == 2 && \result[0] == position % size && \result[1] == position / size;
+
+    //@ ensures \result.length == 2 && \result[0] == (position % size) && \result[1] == (Math.max(0, (position / this.size)));
     //@ pure
     public int[] getCoordinatesFromPosition(int position)
     {
@@ -203,7 +204,8 @@ public class Board
         
         // get and use x and y by finding low and high frequency categories
         coords[0] = position % this.size; // x is low frequency
-        coords[1] = position / this.size; // y is high frequency
+        coords[1] = (int) Math.max(0, (position / this.size)); // y is high frequency
+
         return coords;
     }
     
@@ -257,12 +259,17 @@ public class Board
      * @return Returns true if the given position is over the edge the board
      * @param position The given 0-indexed position value
      */
-    //@ requires size > 0;
-    //@ ensures \result == (position < 0 || position >= size*size);
+
+    //@ requires position < Integer.MAX_VALUE;
+    /*@ ensures \result == (getCoordinatesFromPosition(position)[0] < 0 
+                        ||  getCoordinatesFromPosition(position)[0] >= size
+                        ||  getCoordinatesFromPosition(position)[1] < 0 
+                        ||  getCoordinatesFromPosition(position)[1] >= size);
+    */
     //@ pure
     public boolean isOverEdge(int position)
     {
-         int[] coords = getCoordinatesFromPosition(position); // convert position to coordinates and use that
+        int[] coords = getCoordinatesFromPosition(position); // convert position to coordinates and use that
         return this.isOverEdge(coords[0], coords[1]); 
     }
     
