@@ -12,6 +12,7 @@ public class Move
     //@ spec_public
     int x1, y1, x2, y2;
     Move precedingMove;
+    //@ spec_public
     boolean isJump;
     
     /**
@@ -77,34 +78,38 @@ public class Move
      * @return Returns an array of pieces that were jumped.
      * @param board The board to look for the pieces on.
      */
-    // public Piece[] getJumpedPieces(Board board)
-    // {
-    //     // if this move wasn't a jump, it didn't jump a piece!
-    //     if (isJump)
-    //     {
-    //         // create expandable list of all pieces
-    //         ArrayList<Piece> pieces = new ArrayList<Piece>();
+
+    //@ requires board != null;
+    //@ ensures !isJump ==> \result == null;
+    //@ ensures isJump ==> (\forall int i; 0 <= i < \result.length; \typeof(\result[i]) == \type(Piece));
+    public Piece[] getJumpedPieces(Board board)
+    {
+        // if this move wasn't a jump, it didn't jump a piece!
+        if (isJump)
+        {
+            // create expandable list of all pieces
+            ArrayList<Piece> pieces = new ArrayList<Piece>();
             
-    //         // the piece this move is jumping should be between the start and end of this move
-    //         // (the average of those two positions)
-    //         int pieceX = (x1 + x2)/2;
-    //         int pieceY = (y1 + y2)/2;
+            // the piece this move is jumping should be between the start and end of this move
+            // (the average of those two positions)
+            int pieceX = (x1 + x2)/2;
+            int pieceY = (y1 + y2)/2;
             
-    //         // add this most recent jump...
-    //         pieces.add(board.getValueAt(pieceX, pieceY));
+            // add this most recent jump...
+            pieces.add(board.getValueAt(pieceX, pieceY));
             
-    //         // ...but also go back to get the inbetween ones (if we're not the first move)
-    //         if (precedingMove != null)
-    //         {
-    //             pieces.addAll(Arrays.asList(precedingMove.getJumpedPieces(board))); 
-    //             // something is wrong (a preceding move isn't a jump) if this returns null, so let the error be thrown
-    //         }
+            // ...but also go back to get the inbetween ones (if we're not the first move)
+            if (precedingMove != null)
+            {
+                pieces.addAll(Arrays.asList(precedingMove.getJumpedPieces(board))); 
+                // something is wrong (a preceding move isn't a jump) if this returns null, so let the error be thrown
+            }
             
-    //         // shorten and return
-    //         pieces.trimToSize();
-    //         return pieces.toArray(new Piece[1]); // convert to Piece array 
-    //     }
-    //     else
-    //         return null;
-    // }
+            // shorten and return
+            pieces.trimToSize();
+            return pieces.toArray(new Piece[1]); // convert to Piece array 
+        }
+        else
+            return null;
+    }
 }

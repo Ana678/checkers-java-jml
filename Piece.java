@@ -90,7 +90,7 @@ public class Piece
      * Switches this piece to a king (TODO: MAY BE UNNECCESARY DUE TO BELOW METHOD!!)
      */
     //@ assignable this.isKing;
-    //@ ensures !this.isKing;
+    //@ ensures this.isKing;
     private void setKing()
     {
         this.isKing = true;
@@ -100,6 +100,8 @@ public class Piece
      * Switches this peice to be a king if it is at the end of the board.
      * Should be called after every move.
      */
+    //@ assignable this_isKing;
+    //@ ensures board != null;
     public void checkIfShouldBeKing(Board board)
     {
         // if the piece is white, it's a king if it's at the +y, otherwise if its black this happens at the -y side
@@ -198,6 +200,7 @@ public class Piece
      * @param precedingMove The moves preceding the call to search for moves off this piece - only used
      * in recursion, should be set to null at first call. (if it's not, it means this piece is imaginary).
      */
+
     private Move[] getAllPossibleJumps(Board board, Move precedingMove)
     {
         // create expandable list of all moves
