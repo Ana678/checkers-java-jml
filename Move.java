@@ -12,6 +12,7 @@ public class Move
     //@ spec_public
     int x1, y1, x2, y2;
     Move precedingMove;
+    //@ spec_public
     boolean isJump;
     
     /**
@@ -78,6 +79,11 @@ public class Move
      * @return Returns an array of pieces that were jumped.
      * @param board The board to look for the pieces on.
      */
+
+    //@ requires board != null;
+    //@ ensures !isJump ==> \result == null;
+    //@ ensures isJump ==> (\forall int i; 0 <= i < \result.length; \typeof(\result[i]) == \type(Piece));
+
     public Piece[] getJumpedPieces(Board board)
     {
         // if this move wasn't a jump, it didn't jump a piece!
