@@ -8,10 +8,18 @@ import java.util.Arrays;
  */
 public class Piece
 {
-    private int x;
-    private int y;
-    private boolean isKing = false;
+    private int x; //@ in this_x;
+    private int y; //@ in this_y;
+    private boolean isKing = false; //@ in this_isKing;
     public boolean isWhite;
+    //@ public model int this_x;
+    //@ private represents this_x = this.x;
+
+    //@ public model int this_y;
+    //@ private represents this_y = this.y;
+
+    //@ public model boolean this_isKing;
+    //@ private represents this_isKing = this.isKing;
 
     /**
      * Constructor for objects of class Piece
@@ -20,16 +28,27 @@ public class Piece
      * @param y The y position of this piece.
      * @param isWhite Whether this piece is white or black.
      */
+    //@ public normal_behavior
+    //@     requires x >=0 && y>=0;
+    //@     ensures this_x == x;
+    //@     ensures this_y == y;
+    //@     ensures this.isWhite == isWhite;
+    //@ pure
     public Piece(int x, int y, boolean isWhite)
     {
         this.x = x;
         this.y = y;
-		this.isWhite = isWhite;
+        this.isWhite = isWhite;
     }
 
     /**
      * @return Returns a two-part array representing the coordinates of this piece's position.
      */
+    //@ ensures \result != null;
+    //@ ensures \result.length==2;
+    //@ ensures \result[0] == this_x;
+    //@ ensures \result[1] == this_y;
+    //@ pure
     public int[] getCoordinates()
     {
         int[] coordinates = new int[2];
@@ -41,6 +60,12 @@ public class Piece
     /**
      * @return Returns a string representation of this given piece
      */
+    //@ ensures \result.length()==2;
+    //@ ensures (this.isWhite && this_isKing) ==> (\result.equals("WK"));
+    //@ ensures (this.isWhite && !this_isKing) ==> (\result.equals("W "));
+    //@ ensures (!this.isWhite && this_isKing) ==> (\result.equals("BK"));
+    //@ ensures (!this.isWhite && !this_isKing) ==> (\result.equals("B "));
+    //@ pure
     public String getString()
     {
         String baseSymbol;
@@ -50,6 +75,7 @@ public class Piece
         else
             baseSymbol = "B";
 
+        //@ assert baseSymbol.length()==1;
         if (isKing)
             baseSymbol += "K";
         else
@@ -61,9 +87,11 @@ public class Piece
     /**
      * Switches this piece to a king (TODO: MAY BE UNNECCESARY DUE TO BELOW METHOD!!)
      */
+    //@ assignable this.isKing;
+    //@ ensures !this.isKing;
     private void setKing()
     {
-        isKing = true;
+        this.isKing = true;
     }
     
     /**
@@ -83,6 +111,8 @@ public class Piece
      * @param x The x coordinate of the move
      * @param y The y coordinate of the move
      */
+    // @ assignable this.x, this.y;
+    // @ ensures this.x==1;
     public void moveTo(int x, int y)
     {
         this.x = x;

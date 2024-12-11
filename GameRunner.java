@@ -148,6 +148,7 @@ public class GameRunner
     /**
      * Clears the terminal screen
      */
+    // @pure
     public static void clearScreen()
     {
     	// see http://stackoverflow.com/a/32008479/3155372

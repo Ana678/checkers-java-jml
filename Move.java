@@ -6,8 +6,10 @@ import java.util.Arrays;
  * @author Mckenna Cisler
  * @version 12.1.2015
  */
+//@ nullable_by_default
 public class Move
 {
+    //@ spec_public
     int x1, y1, x2, y2;
     Move precedingMove;
     boolean isJump;
@@ -20,6 +22,14 @@ public class Move
      * @param y2 Ending y position.
      * @param precedingMove The move preceding this one (can be null if move is first)
      */
+
+    //@ public normal_behavior
+    //@     requires x1 >=0 && x2>=0 && y1 >=0 && y2>=0;
+    //@     ensures this.x1 == x1;
+    //@     ensures this.x2 == x2;
+    //@     ensures this.y1 == y1;
+    //@     ensures this.y2 == y2;
+    //@ pure
     public Move(int x1, int y1, int x2, int y2, Move precedingMove, boolean isJump)
     {
         this.x1 = x1;
@@ -33,6 +43,11 @@ public class Move
     /**
      * @return Returns a two-part array representing the coordinates of this move's starting position.
      */
+
+    //@ ensures \result.length==2;
+    //@ ensures \result[0] == this.x1;
+    //@ ensures \result[1] == this.y1;
+    //@ pure
     public int[] getStartingPosition()
     {
         int[] position = new int[2];
@@ -44,6 +59,11 @@ public class Move
     /**
      * @return Returns a two-part array representing the coordinates of this move's ending position.
      */
+    //@ ensures \result != null;
+    //@ ensures \result.length==2;
+    //@ ensures \result[0] == this.x2;
+    //@ ensures \result[1] == this.y2;
+    //@ pure
     public int[] getEndingPosition()
     {
         int[] position = new int[2];
