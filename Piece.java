@@ -30,6 +30,7 @@ public class Piece
      */
     //@ public normal_behavior
     //@     requires x >=0 && y>=0;
+    //@     requires x + y < Integer.MAX_VALUE;
     //@     ensures this_x == x;
     //@     ensures this_y == y;
     //@     ensures this.isWhite == isWhite;
@@ -129,6 +130,9 @@ public class Piece
      * @return Returns a list of all the moves (including recusively found jumps), including each individual one involved in every jump.
      * @param board The board to work with - assumed to be flipped to correspond to this piece's color.
      */
+
+    //@ requires board != null;
+    //@ pure
     public Move[] getAllPossibleMoves(Board board)
     {
         // create expandable list of all moves
@@ -201,6 +205,8 @@ public class Piece
      * in recursion, should be set to null at first call. (if it's not, it means this piece is imaginary).
      */
 
+    //@ requires board != null;
+    //@ pure
     private Move[] getAllPossibleJumps(Board board, Move precedingMove)
     {
         // create expandable list of all moves
@@ -228,10 +234,21 @@ public class Piece
             rowsToCheck = 2;
         
         // iterate over the four spaces where normal (non-jumping) moves are possible        
+        //@ maintaining this.x - 2 <= x && x <= this.x + 2;
+        //@ maintaining x % 4 == this.x % 4 - 2;
+        //@ decreases (this.x + 2 - x) / 4;
+        // assume this.x - 2 >= Integer.MIN_VALUE + 4 && this.x + 2 <= Integer.MAX_VALUE - 4;
+
         for (int x = this.x - 2; x <= this.x + 2; x += 4)
         {
             // go over the rows (or row) (we iterate the number of times determined by the kingess above)
             int y = startingY - yIncrement; // add this so we can add the normal increment before the boundary checks in the loop
+            
+
+            //@ maintaining 0 <= i && i <= rowsToCheck;
+            //@ maintaining y == startingY - yIncrement + i * yIncrement;
+            //@ maintaining (\forall int yi; startingY - yIncrement < yi && yi < y; board.isOverEdge(x, yi) || (precedingMove != null && x == precedingMove.getStartingPosition()[0] && yi == precedingMove.getStartingPosition()[1]));
+            //@ decreases rowsToCheck - i;
             for (int i = 0; i < rowsToCheck; i++) 
             {
                 // increment y if we need to (this will have no effect if we only run one iteration)

@@ -11,10 +11,12 @@ public class Move
 {
     //@ spec_public
     int x1, y1, x2, y2;
+    //@ spec_public
     Move precedingMove;
     //@ spec_public
     boolean isJump;
     
+    //@ public invariant x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0;
     /**
      * Constructor for objects of class Move - initializes starting and final position.
      * @param x1 Starting x position.
@@ -26,6 +28,7 @@ public class Move
 
     //@ public normal_behavior
     //@     requires x1 >=0 && x2>=0 && y1 >=0 && y2>=0;
+    //@     requires (x1+x2) < Integer.MAX_VALUE && (y1+y2) < Integer.MAX_VALUE;
     //@     ensures this.x1 == x1;
     //@     ensures this.x2 == x2;
     //@     ensures this.y1 == y1;
@@ -72,7 +75,14 @@ public class Move
         position[1] = y2;
         return position;
     }
-    
+
+    //@ requires v1 >= 0 && v2 >= 0;
+    //@ ensures \result >= 0;
+    //@ pure
+    public int calculateMeanTile(int v1,int v2){
+        return (int)(v1+v2)/2;
+    }
+
     /**
      * Finds the pieces jumped in this move.
      * (Get's inbetween jumps using recursion)
@@ -81,37 +91,51 @@ public class Move
      */
 
     //@ requires board != null;
-    //@ ensures !isJump ==> \result == null;
-    //@ ensures isJump ==> (\forall int i; 0 <= i < \result.length; \typeof(\result[i]) == \type(Piece));
-
+    //@ requires 0 <= x1 && 0 <= x2 && 0 <= y1 && 0 <= y2;    
+    //@ ensures !this.isJump ==> \result == null;
+    //@ pure
     public Piece[] getJumpedPieces(Board board)
     {
-        // if this move wasn't a jump, it didn't jump a piece!
-        if (isJump)
-        {
-            // create expandable list of all pieces
-            ArrayList<Piece> pieces = new ArrayList<Piece>();
-            
-            // the piece this move is jumping should be between the start and end of this move
-            // (the average of those two positions)
-            int pieceX = (x1 + x2)/2;
-            int pieceY = (y1 + y2)/2;
-            
-            // add this most recent jump...
-            pieces.add(board.getValueAt(pieceX, pieceY));
-            
-            // ...but also go back to get the inbetween ones (if we're not the first move)
-            if (precedingMove != null)
-            {
-                pieces.addAll(Arrays.asList(precedingMove.getJumpedPieces(board))); 
-                // something is wrong (a preceding move isn't a jump) if this returns null, so let the error be thrown
-            }
-            
-            // shorten and return
-            pieces.trimToSize();
-            return pieces.toArray(new Piece[1]); // convert to Piece array 
-        }
-        else
+        if(!this.isJump){
             return null;
+        }
+        // if this move wasn't a jump, it didn't jump a piece!
+        
+        // create expandable list of all pieces
+        ArrayList<Piece> pieces = new ArrayList<Piece>();
+        
+        // the piece this move is jumping should be between the start and end of this move
+        // (the average of those two positions)
+        // assume x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0;
+        int pieceX = calculateMeanTile(x1,x2);
+        int pieceY = calculateMeanTile(y1,y2);
+        
+        // add this most recent jump...
+        // assume pieceX<board.size && pieceY<board.size;
+        if(pieceX >= board.size || pieceY >= board.size){
+            return null;
+        }
+
+        Piece jumpedPiece = board.getValueAt(pieceX, pieceY);
+        if (jumpedPiece != null)
+            pieces.add(board.getValueAt(pieceX, pieceY));
+        
+        // ...but also go back to get the inbetween ones (if we're not the first move)
+        if (precedingMove != null)
+        {
+            Piece[] precedingJumpedPieces = precedingMove.getJumpedPieces(board);
+            if (precedingJumpedPieces != null)
+            {
+                for (Piece p : precedingJumpedPieces) {
+                    if (p != null) {
+                        pieces.add(p);
+                    }
+                }
+            }
+        }
+        
+        // shorten and return
+        pieces.trimToSize();
+        return pieces.toArray(new Piece[1]); // convert to Piece array 
     }
 }
