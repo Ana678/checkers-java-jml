@@ -8,13 +8,16 @@ import java.util.Scanner;
 public class HumanPlayer extends Player
 {
     // global variables
-    Scanner input = new Scanner(System.in);    
-    boolean isWhite;
+    Scanner input = new Scanner(System.in);   
+    //@ spec_public 
+    boolean isWhite; //@ in color;
     
     /**
      * Constructor for the HumanPlayer
      * @param color The color (side) of this player, to be used to identify the user
      */
+    //@ ensures this.isWhite == isWhite;
+    //@ pure
     public HumanPlayer(boolean isWhite)
     {
 		this.isWhite = isWhite;
