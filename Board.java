@@ -114,11 +114,15 @@ public class Board
             { 
                 if (jumpedPieces[i] != null) // apparently this can happen... ?????
                 {
-                    int jumpedX = jumpedPieces[i].getCoordinates()[0];
-                    int jumpedY = jumpedPieces[i].getCoordinates()[1];
+                    Piece jumpedPiece = jumpedPieces[i];
+                    if(jumpedPiece.x >= 0 && jumpedPiece.y >= 0 && jumpedPiece.x < this.size && jumpedPiece.y < this.size){
+                        this.setValueAt(jumpedPiece.x, jumpedPiece.y, null);
+                    }
+                    // int jumpedX = jumpedPieces[i].getCoordinates()[0];
+                    // int jumpedY = jumpedPieces[i].getCoordinates()[1];
 
-                    if (jumpedX < this.size && jumpedY < this.size)
-                        this.setValueAt(jumpedX, jumpedY, null);
+                    // if (jumpedX < this.size && jumpedY < this.size)
+                    //     this.setValueAt(jumpedX, jumpedY, null);
                 }
             }
         }
