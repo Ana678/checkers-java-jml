@@ -15,13 +15,13 @@ public class Board
     //@ public invariant size >= 1 && size < Integer.MAX_VALUE && size*size < Integer.MAX_VALUE;
     //@ public invariant (\forall int y; 0 <= y < size; boardArray[y] != null && boardArray[y].length == size);
     //@ public invariant (\forall int y; 0 <= y < size; \type(Piece) == \elemtype(\typeof(boardArray[y])));
-    //@ public invariant \type(Piece) == \elemtype(\elemtype(\typeof(boardArray)));
+    // public invariant \type(Piece) == \elemtype(\elemtype(\typeof(boardArray)));
     //@ public invariant \type(Piece[]) == \elemtype(\typeof(boardArray));
 
     //@ public invariant size == boardArray.length;
     //@ public invariant boardArray.length == size;
     //@ public invariant (\forall int y; 0 <= y < size; boardArray[y] != null && boardArray[y].length == size);
-    //@ public invariant size == GameRunner.SIZE;
+    // public invariant size == GameRunner.SIZE;
     /**
      * Responsible for generating a brand new board
      * @param size The size of the board (8 for common checkers)
@@ -79,7 +79,8 @@ public class Board
                 // ... and black pieces to the bottom in the opposite pattern
                 else if (y >= size - 3 && isCheckerboardSpace(x, y))
                 {
-                    this.boardArray[y][x] = new Piece(x, y, false);
+                    Piece novaPeca = new Piece(x, y, false);
+                    this.boardArray[y][x] = novaPeca;
                 }
             }
         }

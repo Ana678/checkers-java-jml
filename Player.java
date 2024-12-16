@@ -17,5 +17,6 @@ public abstract class Player
 
     //@ requires board != null;
     //@ ensures \result == board;
+    //@ assignable System.out.outputText;
     public abstract Board getMove(Board board);
 }

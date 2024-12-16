@@ -28,6 +28,12 @@ public class HumanPlayer extends Player
      * @param board The board to apply the move to (assumed to be oriented so that this player is on the top)
      * @return Returns the board, modified according to the player's move
      */
+    //@ also
+    //@     requires board != null;
+    //@     requires board.boardArray != null;
+    //@     requires board.size == board.boardArray.length;
+    //@     requires board.size > 0;
+    //@     ensures \result == board;
     public Board getMove(Board board)
     {        
         // display board to help user (without possible moves)
@@ -35,6 +41,8 @@ public class HumanPlayer extends Player
         
         // keep asking until they select a piece with a valid move
         Move[] possibleMoves;
+        //@ maintaining board != null;
+        //@ maintaining board.size == board.boardArray.length;
         while (true)
         {
             // ask user for a piece
@@ -43,9 +51,13 @@ public class HumanPlayer extends Player
             // check for quit
             if (pieceMoving == null)
                 return board;
-            
+            //if(!piece.getCoordinates().length == 2 || 0 > piece.getCoordinates()[0] >= board.size || 0 > piece.getCoordinates()[1] >= board.size)
+            //    return board;
             // find all possible moves the player could do
+            if(pieceMoving.x>9 || pieceMoving.y>9)
+                return board;
             possibleMoves = pieceMoving.getAllPossibleMoves(board);
+            
                        
             // check that there are some, and if so continue to ask for move
             if (possibleMoves == null)
@@ -73,7 +85,10 @@ public class HumanPlayer extends Player
      * @param possibleMoves An optional Array of possible moves to display while printing the board.
      * The board will display as normal if this is null.
      */
-    private void displayBoard(Board board, Move[] possibleMoves)
+
+
+    //@ assignable System.out.outputText;
+    private void displayBoard(Board board, /*@ nullable @*/Move[] possibleMoves)
     {
         // clear the screen for board display
         GameRunner.clearScreen();

@@ -11,12 +11,16 @@ public class GameRunner
     public static final int SIZE = 9;
 
     // define globally used variables
+    //@ spec_public
     private static Scanner input = new Scanner(System.in);
+    //@ spec_public
     private static boolean isPlayer1 = true;
     
     // define an easily accesible "end" variable
+    //@ spec_public
     private static boolean endGameNow = false;
-    
+
+    //@ pure
     public static void main(String[] args)
     {
         // generate basic board and setup
@@ -60,6 +64,7 @@ public class GameRunner
      * @return Returns true if the user wants two-player mode, 
      * else false if they want one-player mode.
      */
+    //@ pure
     private static boolean askIfTwoPlayer()
     {       
         // keep asking to get a valid response

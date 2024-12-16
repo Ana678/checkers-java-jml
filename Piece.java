@@ -298,8 +298,10 @@ public class Piece
                     // after jumping, create an imaginary piece as if it was there to look for more jumps
                     Piece imaginaryPiece = new Piece(x_it, y, this.isWhite);
                     
+                    if(imaginaryPiece.x>9 ||imaginaryPiece.y>9)
+                        return null;
 					// correspond possible jumps to this piece's kingness
-               		if (this.isKing) imaginaryPiece.setKing();
+                    if (this.isKing) imaginaryPiece.setKing();
                     
                     // find possible subsequent moves recusivly
                     /*@ nullable @*/Move[] subsequentMoves = imaginaryPiece.getAllPossibleJumps(board, jumpingMove);
