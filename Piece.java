@@ -69,15 +69,15 @@ public class Piece
         String baseSymbol;
 
         if (isWhite)
-            baseSymbol = "W";
+            if(isKing)
+                baseSymbol = "WK";
+            else
+                baseSymbol = "W ";
         else
-            baseSymbol = "B";
-
-        //@ assert baseSymbol.length()==1;
-        if (isKing)
-            baseSymbol += "K";
-        else
-            baseSymbol += " "; // add a space in the non-king state just to keep consistency
+            if(isKing)
+                baseSymbol = "BK";
+            else
+                baseSymbol = "B ";
 
         return baseSymbol;
     }
@@ -248,7 +248,7 @@ public class Piece
             rowsToCheck = 2;
         
         // iterate over the four spaces where normal (non-jumping) moves are possible        
-        //@ maintaining ((this.x+2+4) >= x_it >= (this.x-2));
+        //@ maintaining ( (this.x-2)<= x_it <= (this.x+2+4));
         //@ decreases this.x + 2 - x_it;
         for (int x_it = this.x - 2; x_it <= this.x + 2; x_it += 4)
         {
