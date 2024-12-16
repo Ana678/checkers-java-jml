@@ -16,6 +16,7 @@ public class Board
     //@ public invariant (\forall int y; 0 <= y < size; boardArray[y] != null && boardArray[y].length == size);
     //@ public invariant (\forall int y; 0 <= y < size; \type(Piece) == \elemtype(\typeof(boardArray[y])));
     //@ public invariant \type(Piece[]) == \elemtype(\typeof(boardArray));
+
     /**
      * Responsible for generating a brand new board
      * @param size The size of the board (8 for common checkers)
@@ -108,6 +109,7 @@ public class Board
         {
             //@ maintaining 0 <= i && i <= jumpedPieces.length;
             //@ decreases jumpedPieces.length - i;
+
             for (int i = 0; i < jumpedPieces.length; i++)
             {
                 if (jumpedPieces[i] != null) // apparently this can happen... ?????
