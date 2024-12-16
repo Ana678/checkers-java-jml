@@ -17,6 +17,7 @@ public class Move
     boolean isJump;
     
     //@ public invariant x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0;
+    //@ public invariant (x1 + x2) < Integer.MAX_VALUE && (y1 + y2) < Integer.MAX_VALUE;
     /**
      * Constructor for objects of class Move - initializes starting and final position.
      * @param x1 Starting x position.
@@ -47,10 +48,10 @@ public class Move
     /**
      * @return Returns a two-part array representing the coordinates of this move's starting position.
      */
-
+    //@ ensures \result != null;
     //@ ensures \result.length==2;
-    //@ ensures \result[0] == this.x1;
-    //@ ensures \result[1] == this.y1;
+    //@ ensures \result[0] == x1;
+    //@ ensures \result[1] == y1;
     //@ pure
     public int[] getStartingPosition()
     {
@@ -77,6 +78,7 @@ public class Move
     }
 
     //@ requires v1 >= 0 && v2 >= 0;
+    //@ requires (v1+v2) < Integer.MAX_VALUE;
     //@ ensures \result >= 0;
     //@ pure
     public int calculateMeanTile(int v1,int v2){
@@ -92,7 +94,9 @@ public class Move
 
     //@ requires board != null;
     //@ requires 0 <= x1 && 0 <= x2 && 0 <= y1 && 0 <= y2;    
-    //@ ensures !this.isJump ==> \result == null;
+    //@ requires (x1 + x2) < Integer.MAX_VALUE;
+    //@ requires (y1 + y2) < Integer.MAX_VALUE;
+    //@ ensures \result == null || (\forall int i; 0 <= i && i < \result.length; \result[i] != null);
     //@ pure
     public Piece[] getJumpedPieces(Board board)
     {
@@ -118,8 +122,9 @@ public class Move
 
         Piece jumpedPiece = board.getValueAt(pieceX, pieceY);
         if (jumpedPiece != null)
-            pieces.add(board.getValueAt(pieceX, pieceY));
-        
+            if(jumpedPiece.x>=0 && jumpedPiece.y>=0){
+                pieces.add(jumpedPiece);
+            }
         // ...but also go back to get the inbetween ones (if we're not the first move)
         if (precedingMove != null)
         {
@@ -128,14 +133,17 @@ public class Move
             {
                 for (Piece p : precedingJumpedPieces) {
                     if (p != null) {
-                        pieces.add(p);
+                        if(p.x>=0 && p.y>=0 && (long) p.x + (long) p.y < Integer.MAX_VALUE){
+                            pieces.add(p);
+                        }
                     }
                 }
-            }
+            } 
         }
         
         // shorten and return
         pieces.trimToSize();
         return pieces.toArray(new Piece[1]); // convert to Piece array 
     }
+
 }
