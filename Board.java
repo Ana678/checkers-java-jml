@@ -16,11 +16,6 @@ public class Board
     //@ public invariant (\forall int y; 0 <= y < size; boardArray[y] != null && boardArray[y].length == size);
     //@ public invariant (\forall int y; 0 <= y < size; \type(Piece) == \elemtype(\typeof(boardArray[y])));
     //@ public invariant \type(Piece[]) == \elemtype(\typeof(boardArray));
-
-    //@ public invariant size == boardArray.length;
-    //@ public invariant boardArray.length == size;
-    //@ public invariant (\forall int y; 0 <= y < size; boardArray[y] != null && boardArray[y].length == size);
-
     /**
      * Responsible for generating a brand new board
      * @param size The size of the board (8 for common checkers)
@@ -53,6 +48,7 @@ public class Board
     //@ requires board != null;
     //@ ensures this.size == board.size;
     //@ ensures this.boardArray == board.boardArray;
+    //@ ensures size >= 1 && size < Integer.MAX_VALUE && size*size < Integer.MAX_VALUE;
     //@ pure
     public Board(Board board)
     {
@@ -95,7 +91,7 @@ public class Board
      */
     //@ requires piece.getCoordinates().length == 2 && 0 <= piece.getCoordinates()[0] < size && 0 <= piece.getCoordinates()[1] < size;
     //@ requires move.getEndingPosition().length == 2 && 0 <= move.getEndingPosition()[0] < size && 0 <= move.getEndingPosition()[1] < size;
-    //@ requires 0 <= move.getJumpedPieces(this).length < size;
+    //@ requires move.getJumpedPieces(this) == null || (\forall int i; 0 <= i && i < move.getJumpedPieces(this).length; move.getJumpedPieces(this)[i] != null);
     public void applyMoveToBoard(Move move, Piece piece)
     {
         // NOTE: at this point, the starting position of the move (move.getStartingPosition) will not neccesarily
@@ -110,10 +106,8 @@ public class Board
         /*@ nullable @*/Piece[] jumpedPieces = move.getJumpedPieces(this);
         if (jumpedPieces != null)
         {
-            // maintaining 0 <= i <= jumpedPieces.length;
-            // maintaining (\forall int k; 0 <= k < i && jumpedPieces[k] != null && 0 <= jumpedPieces[k].getCoordinates()[0] < i &&  0 <= jumpedPieces[k].getCoordinates()[1] < i; this.getValueAt(jumpedPieces[i].getCoordinates()[0], jumpedPieces[i].getCoordinates()[1]) == null);
-            // loop_writes i, this.boardArray[*][*];
-            // decreases jumpedPieces.length - i;
+            //@ maintaining 0 <= i && i <= jumpedPieces.length;
+            //@ decreases jumpedPieces.length - i;
             for (int i = 0; i < jumpedPieces.length; i++)
             {
                 if (jumpedPieces[i] != null) // apparently this can happen... ?????
@@ -141,8 +135,6 @@ public class Board
      * @param piece The Piece to put in this space, but can be null to make the space empty
      */
     //@ requires 0 <= x && x < size && 0 <= y && y < size;
-
-
     //@ ensures boardArray[y][x] == piece;
     //@ assignable boardArray[y][x];
     private void setValueAt(int x, int y, /*@ nullable @*/ Piece piece)
@@ -157,7 +149,6 @@ public class Board
      */
 
     //@ requires 0 <= position < size*size && position < Integer.MAX_VALUE;
-    //@ ensures 0 <= getCoordinatesFromPosition(position)[0] < size && 0 <= getCoordinatesFromPosition(position)[1] < size;
     private void setValueAt(int position, /*@ nullable @*/ Piece piece)
 
     {

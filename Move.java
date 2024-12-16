@@ -92,7 +92,7 @@ public class Move
 
     //@ requires board != null;
     //@ requires 0 <= x1 && 0 <= x2 && 0 <= y1 && 0 <= y2;    
-    //@ ensures !this.isJump ==> \result == null;
+    //@ ensures \result == null || (\forall int i; 0 <= i && i < \result.length; \result[i] != null);
     //@ pure
     public Piece[] getJumpedPieces(Board board)
     {
