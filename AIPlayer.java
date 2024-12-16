@@ -11,13 +11,16 @@ import java.util.Random;
 public class AIPlayer extends Player
 {
     // global variables
-    boolean isWhite;
+    //@ spec_public
+    boolean isWhite;// @ in color;
     
     /**
      * Constructor for objects of class AIPlayer.
      * Initializes this AI's color.
      * @param color This "player's" color.
      */
+    //@ ensures this.isWhite == isWhite;
+    //@ pure
     public AIPlayer(boolean isWhite)
 	{
 		this.isWhite = isWhite;

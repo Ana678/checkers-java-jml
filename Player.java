@@ -13,5 +13,9 @@ public abstract class Player
      * @param board The board to apply the move to
      * @return Returns the board, modified according to the player's move
      */
+    //@ public model instance boolean color;
+
+    //@ requires board != null;
+    //@ ensures \result == board;
     public abstract Board getMove(Board board);
 }
