@@ -22,6 +22,7 @@ public class Board
      * @param size The size of the board (8 for common checkers)
      * NOTE: currently will probably break with other than 8 as size!
      */
+
     //@ requires size >= 1 && size < Integer.MAX_VALUE && size*size < Integer.MAX_VALUE;
     //@ ensures boardArray != null; 
     //@ pure
@@ -48,6 +49,7 @@ public class Board
     //@ requires board != null;
     //@ ensures this.size == board.size;
     //@ ensures this.boardArray == board.boardArray;
+    //@ ensures size >= 1 && size < Integer.MAX_VALUE && size*size < Integer.MAX_VALUE;
     //@ pure
     public Board(Board board)
     {
@@ -90,7 +92,7 @@ public class Board
      */
     //@ requires piece.getCoordinates().length == 2 && 0 <= piece.getCoordinates()[0] < size && 0 <= piece.getCoordinates()[1] < size;
     //@ requires move.getEndingPosition().length == 2 && 0 <= move.getEndingPosition()[0] < size && 0 <= move.getEndingPosition()[1] < size;
-    //@ requires 0 <= move.getJumpedPieces(this).length < size;
+    //@ requires move.getJumpedPieces(this) == null || (\forall int i; 0 <= i && i < move.getJumpedPieces(this).length; move.getJumpedPieces(this)[i] != null);
     public void applyMoveToBoard(Move move, Piece piece)
     {
         // NOTE: at this point, the starting position of the move (move.getStartingPosition) will not neccesarily
@@ -102,13 +104,12 @@ public class Board
         int[] moveEndingPos = move.getEndingPosition();
         
         // find any pieces we've jumped in the process, and remove them as well
-        Piece[] jumpedPieces = move.getJumpedPieces(this);
+        /*@ nullable @*/Piece[] jumpedPieces = move.getJumpedPieces(this);
         if (jumpedPieces != null)
         {
-            // maintaining 0 <= i <= jumpedPieces.length;
-            // maintaining (\forall int k; 0 <= k < i && jumpedPieces[k] != null && 0 <= jumpedPieces[k].getCoordinates()[0] < i &&  0 <= jumpedPieces[k].getCoordinates()[1] < i; this.getValueAt(jumpedPieces[i].getCoordinates()[0], jumpedPieces[i].getCoordinates()[1]) == null);
-            // loop_writes i, this.boardArray[*][*];
-            // decreases jumpedPieces.length - i;
+            //@ maintaining 0 <= i && i <= jumpedPieces.length;
+            //@ decreases jumpedPieces.length - i;
+
             for (int i = 0; i < jumpedPieces.length; i++)
             {
                 if (jumpedPieces[i] != null) // apparently this can happen... ?????
@@ -148,9 +149,10 @@ public class Board
      * @param position The number position, zero indexed at top left.
      * @param piece The Piece to put in this space, but can be null to make the space empty
      */
+
     //@ requires 0 <= position < size*size && position < Integer.MAX_VALUE;
-    //@ ensures 0 <= getCoordinatesFromPosition(position)[0] < size && 0 <= getCoordinatesFromPosition(position)[1] < size;
     private void setValueAt(int position, /*@ nullable @*/ Piece piece)
+
     {
         int[] coords = getCoordinatesFromPosition(position); // convert position to coordinates and use that
         this.setValueAt(coords[0], coords[1], piece);
@@ -162,6 +164,7 @@ public class Board
      * @param y The y position of the Piece
      * @return The Piece here. (May be null)
      */
+
     //@ requires x >= 0 && x < size && y >= 0 && y < size;
     //@ ensures \result == boardArray[y][x];
     //@ pure
@@ -176,6 +179,7 @@ public class Board
      * @param position This number, zero indexed at top left
      * @return The Piece here. (may be null).
      */
+
     //@ requires 0 <= position < size*size && position < Integer.MAX_VALUE;
     //@ pure
     public /*@ nullable @*/ Piece getValueAt(int position)
@@ -189,6 +193,7 @@ public class Board
      * @param position The single position value, zero indexed at top left.
      * @return A two part int array where [0] is the x coordinate and [1] is the y.
      */
+
     //@ ensures \result.length == 2 && \result[0] == (position % size) && \result[1] == (Math.max(0, (position / this.size)));
     //@ pure
     public int[] getCoordinatesFromPosition(int position)
@@ -252,6 +257,7 @@ public class Board
      * @return Returns true if the given position is over the edge the board
      * @param position The given 0-indexed position value
      */
+
     //@ requires position < Integer.MAX_VALUE;
     /*@ ensures \result == (getCoordinatesFromPosition(position)[0] < 0 
                         ||  getCoordinatesFromPosition(position)[0] >= size

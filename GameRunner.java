@@ -60,6 +60,7 @@ public class GameRunner
      * @return Returns true if the user wants two-player mode, 
      * else false if they want one-player mode.
      */
+    //@ pure
     private static boolean askIfTwoPlayer()
     {       
         // keep asking to get a valid response

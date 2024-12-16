@@ -30,6 +30,7 @@ public class Piece
      */
     //@ public normal_behavior
     //@     requires x >=0 && y>=0;
+    //@     requires x + y < Integer.MAX_VALUE;
     //@     ensures this_x == x;
     //@     ensures this_y == y;
     //@     ensures this.isWhite == isWhite;
@@ -48,6 +49,8 @@ public class Piece
     //@ ensures \result.length==2;
     //@ ensures \result[0] == this_x;
     //@ ensures \result[1] == this_y;
+    //@ ensures \result[0] >=0;
+    //@ ensures \result[1] >=0;
     //@ pure
     public int[] getCoordinates()
     {
@@ -88,7 +91,7 @@ public class Piece
      * Switches this piece to a king (TODO: MAY BE UNNECCESARY DUE TO BELOW METHOD!!)
      */
     //@ assignable this.isKing;
-    //@ ensures !this.isKing;
+    //@ ensures this.isKing;
     private void setKing()
     {
         this.isKing = true;
@@ -98,6 +101,8 @@ public class Piece
      * Switches this peice to be a king if it is at the end of the board.
      * Should be called after every move.
      */
+    //@ assignable this_isKing;
+    //@ ensures board != null;
     public void checkIfShouldBeKing(Board board)
     {
         // if the piece is white, it's a king if it's at the +y, otherwise if its black this happens at the -y side
@@ -125,6 +130,9 @@ public class Piece
      * @return Returns a list of all the moves (including recusively found jumps), including each individual one involved in every jump.
      * @param board The board to work with - assumed to be flipped to correspond to this piece's color.
      */
+
+    //@ requires board != null;
+    //@ pure
     public Move[] getAllPossibleMoves(Board board)
     {
         // create expandable list of all moves
@@ -196,6 +204,9 @@ public class Piece
      * @param precedingMove The moves preceding the call to search for moves off this piece - only used
      * in recursion, should be set to null at first call. (if it's not, it means this piece is imaginary).
      */
+
+    //@ requires board != null;
+    //@ pure
     private Move[] getAllPossibleJumps(Board board, Move precedingMove)
     {
         // create expandable list of all moves
@@ -223,10 +234,21 @@ public class Piece
             rowsToCheck = 2;
         
         // iterate over the four spaces where normal (non-jumping) moves are possible        
+        //@ maintaining this.x - 2 <= x && x <= this.x + 2;
+        //@ maintaining x % 4 == this.x % 4 - 2;
+        //@ decreases (this.x + 2 - x) / 4;
+        // assume this.x - 2 >= Integer.MIN_VALUE + 4 && this.x + 2 <= Integer.MAX_VALUE - 4;
+
         for (int x = this.x - 2; x <= this.x + 2; x += 4)
         {
             // go over the rows (or row) (we iterate the number of times determined by the kingess above)
             int y = startingY - yIncrement; // add this so we can add the normal increment before the boundary checks in the loop
+            
+
+            //@ maintaining 0 <= i && i <= rowsToCheck;
+            //@ maintaining y == startingY - yIncrement + i * yIncrement;
+            //@ maintaining (\forall int yi; startingY - yIncrement < yi && yi < y; board.isOverEdge(x, yi) || (precedingMove != null && x == precedingMove.getStartingPosition()[0] && yi == precedingMove.getStartingPosition()[1]));
+            //@ decreases rowsToCheck - i;
             for (int i = 0; i < rowsToCheck; i++) 
             {
                 // increment y if we need to (this will have no effect if we only run one iteration)

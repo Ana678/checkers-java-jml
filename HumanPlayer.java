@@ -9,12 +9,14 @@ public class HumanPlayer extends Player
 {
     // global variables
     Scanner input = new Scanner(System.in);    
+    //@ spec_public
     boolean isWhite;
     
     /**
      * Constructor for the HumanPlayer
      * @param color The color (side) of this player, to be used to identify the user
      */
+    //@ pure
     public HumanPlayer(boolean isWhite)
     {
 		this.isWhite = isWhite;
@@ -25,6 +27,7 @@ public class HumanPlayer extends Player
      * @param board The board to apply the move to (assumed to be oriented so that this player is on the top)
      * @return Returns the board, modified according to the player's move
      */
+    //@ pure
     public Board getMove(Board board)
     {        
         // display board to help user (without possible moves)
@@ -144,6 +147,7 @@ public class HumanPlayer extends Player
      * @param board The board to check against
      * @return The Piece object to be returned (will be an actual piece)
      */
+    //@ pure
     private Piece getPieceFromUser(Board board)
     {
         // keep trying again until we get a valid peice chosen
@@ -208,6 +212,7 @@ public class HumanPlayer extends Player
      * @param possibleMoves The list of possible moves the user can request
      * @return The Move object representing the chosen move (may be null if the user chooses to get a new piece)
      */
+    //@ pure
     private Move getMoveFromUser(Move[] possibleMoves)
     {
         int moveNum;
@@ -244,6 +249,8 @@ public class HumanPlayer extends Player
     /**
      * @return Returns a titlecase string representing this player's color
      */
+    //@ ensures \result == "White" || \result == "Black";
+    //@ pure
     private String getColor()
     {
         return isWhite ? "White" : "Black";
