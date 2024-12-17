@@ -110,12 +110,10 @@ public class Move
         
         // the piece this move is jumping should be between the start and end of this move
         // (the average of those two positions)
-        // assume x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0;
         int pieceX = calculateMeanTile(x1,x2);
         int pieceY = calculateMeanTile(y1,y2);
         
         // add this most recent jump...
-        // assume pieceX<board.size && pieceY<board.size;
         if(pieceX >= board.size || pieceY >= board.size){
             return null;
         }
@@ -143,6 +141,9 @@ public class Move
         
         // shorten and return
         pieces.trimToSize();
+        if (pieces.contains(null)) {
+            return null;
+        }
         return pieces.toArray(new Piece[1]); // convert to Piece array 
     }
 

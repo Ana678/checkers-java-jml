@@ -24,7 +24,7 @@ public class GameRunner
     public static void main(String[] args)
     {
         // generate basic board and setup
-        Board board = new Board();
+        Board board = new Board(9);
 
         // define abstract classes, to be assigned a concrete class after deciding gamemode
         Player player1;
