@@ -16,6 +16,7 @@ public class GameRunner
     
     // define an easily accesible "end" variable
     private static boolean endGameNow = false;
+    
 
     public static void main(String[] args)
     {

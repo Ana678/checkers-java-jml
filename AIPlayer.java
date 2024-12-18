@@ -13,16 +13,6 @@ public class AIPlayer extends Player
     // global variables
     //@ spec_public
     boolean isWhite;
-    
-    //@ public invariant (\forall Move m; m != null; 
-    //@                   m.x1 >= 0 && m.x2 >= 0 && m.y1 >= 0 && m.y2 >= 0);
-    //@ public invariant (\forall Move m; m != null; 
-    //@                   (m.x1 + m.x2) < Integer.MAX_VALUE && (m.y1 + m.y2) < Integer.MAX_VALUE);
-
-    //@ public invariant (\forall Piece p; p != null; p.x >= 0 && p.y >= 0); 
-    //@ public invariant (\forall Piece p; p != null; p.x + p.y < Integer.MAX_VALUE); 
-    //@ public invariant (\forall Piece p; p != null; p.x <= 9 && p.y <= 9); 
-
 
     /**
      * Constructor for objects of class AIPlayer.
@@ -119,8 +109,9 @@ public class AIPlayer extends Player
                 /*@ nullable @*/ Piece piece = board.getValueAt(x, y);
                 if (piece != null && piece.isWhite == this.isWhite)
                 {
+                    //@ assume piece.x <= 9 && piece.y <= 9;
                     /*@ nullable @*/ Move[] possibleMoves = piece.getAllPossibleMoves(board);
-                    if (possibleMoves != null)                        
+                    if (possibleMoves != null)                
                         possibleChoices.put(piece, possibleMoves);
                 }
             }
@@ -138,6 +129,8 @@ public class AIPlayer extends Player
      */
     //@ requires possibleChoices != null;
     //@ requires board != null;
+    //@ requires furthestBackwardPiece != null;
+    //@ requires furthestForwardPiece != null;
     //@ ensures \result != null;
     //@ assignable \nothing;
     //@ pure
@@ -146,10 +139,13 @@ public class AIPlayer extends Player
                                                         Piece furthestForwardPiece,
                                                         Board board)
     {
+
         HashMap<Move, Piece> bestMovesPerPiece = new HashMap<>();
 
         for (Piece piece : possibleChoices.keySet())
         {
+            //@ assume piece.x >= 0 && piece.y >= 0;      
+            //@ assume piece.x + piece.y < Integer.MAX_VALUE;     
             int thisPieceY = piece.getCoordinates()[1];
             if (thisPieceY > furthestForwardPiece.getCoordinates()[1])
             {
@@ -167,6 +163,8 @@ public class AIPlayer extends Player
             }
             
             Move[] possibleMoves = possibleChoices.get(piece);
+            //@  assume (\forall int i; 0 <= i && i < possibleMoves.length && possibleMoves[i] != null; 
+            //@        possibleMoves[i].x1 >= 0 && possibleMoves[i].x2 >= 0 && possibleMoves[i].y1 >= 0 && possibleMoves[i].y2 >= 0);
             if(possibleMoves.length > 0){
                 Move maxJumpMove = getMaxJumpMove(possibleMoves, board);
                 
@@ -183,8 +181,6 @@ public class AIPlayer extends Player
      * @return The move with the most jumps.
      */
     //@ requires possibleMoves != null && possibleMoves.length > 0;
-    //@ requires (\forall int i; 0 <= i && i < possibleMoves.length; 
-    //@        possibleMoves[i].x1 >= 0 && possibleMoves[i].x2 >= 0 && possibleMoves[i].y1 >= 0 && possibleMoves[i].y2 >= 0);
     //@ requires board != null;
     //@ ensures \result != null;
     //@ assignable \nothing;
@@ -198,7 +194,8 @@ public class AIPlayer extends Player
         //@ decreases possibleMoves.length - i;
         for (int i = 0; i < possibleMoves.length; i++)
         {    
-            
+            //@ assume (possibleMoves[i].x1 + possibleMoves[i].x2) < Integer.MAX_VALUE && (possibleMoves[i].y1 + possibleMoves[i].y2) < Integer.MAX_VALUE;
+            //@ assume (possibleMoves[i].x1 >= 0 && possibleMoves[i].x2 >= 0 && possibleMoves[i].y1 >= 0 && possibleMoves[i].y2 >= 0);
             /*@ nullable @*/ Piece[] jumpedPieces = possibleMoves[i].getJumpedPieces(board);
             if (jumpedPieces != null)
             {

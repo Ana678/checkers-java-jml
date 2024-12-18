@@ -15,8 +15,6 @@ public abstract class Player
      */
     //@ public model instance boolean color;
 
-    // assignable System.out.outputText, System.out.eol, System.in;
-    // assignable \everything;
     //@ requires board != null;
     //@ ensures \result == board;
     public abstract Board getMove(Board board);
