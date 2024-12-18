@@ -8,13 +8,16 @@ import java.util.Scanner;
 public class HumanPlayer extends Player
 {
     // global variables
-    Scanner input = new Scanner(System.in);    
-    boolean isWhite;
+    /*@ nullable @*/Scanner input = new Scanner(System.in);   
+    //@ spec_public 
+    boolean isWhite; //@ in color;
     
     /**
      * Constructor for the HumanPlayer
      * @param color The color (side) of this player, to be used to identify the user
      */
+    //@ ensures this.isWhite == isWhite;
+    //@ pure
     public HumanPlayer(boolean isWhite)
     {
 		this.isWhite = isWhite;
@@ -25,13 +28,26 @@ public class HumanPlayer extends Player
      * @param board The board to apply the move to (assumed to be oriented so that this player is on the top)
      * @return Returns the board, modified according to the player's move
      */
+    //@ also
+    //@ requires board != null;
+    //@ requires board.boardArray != null;
+    //@ requires board.size == board.boardArray.length;
+    //@ requires board.size > 0;
+    //@ requires board.boardArray[0].length == board.size;
+    //@ requires (\forall int y; 0 <= y < board.size; \type(Piece) == \elemtype(\typeof(board.boardArray[y])));
+    //@ ensures \result == board;
+    //@ ensures \old(board) == board;
+    //@ assignable \everything; // Adjust as necessary
     public Board getMove(Board board)
     {        
         // display board to help user (without possible moves)
-        displayBoard(board, null);
+        //displayBoard(board, null);
         
         // keep asking until they select a piece with a valid move
-        Move[] possibleMoves;
+        /*@ nullable @*/ Move[] possibleMoves;
+        //@ maintaining board != null;
+        //@ maintaining board.size == board.boardArray.length;
+        
         while (true)
         {
             // ask user for a piece
@@ -40,9 +56,13 @@ public class HumanPlayer extends Player
             // check for quit
             if (pieceMoving == null)
                 return board;
-            
+            //if(!piece.getCoordinates().length == 2 || 0 > piece.getCoordinates()[0] >= board.size || 0 > piece.getCoordinates()[1] >= board.size)
+            //    return board;
             // find all possible moves the player could do
+            if(pieceMoving.x>9 || pieceMoving.y>9)
+                return board;
             possibleMoves = pieceMoving.getAllPossibleMoves(board);
+            
                        
             // check that there are some, and if so continue to ask for move
             if (possibleMoves == null)
@@ -57,8 +77,51 @@ public class HumanPlayer extends Player
                 // OTHERWISE, the user requested a retry, so loop again
                 if (move != null)
                 {
-                    board.applyMoveToBoard(move, pieceMoving);
-                    return board;
+                    // Validate move ending position length
+                if (move.getEndingPosition().length != 2) {
+                    System.out.println("Invalid move ending position length. Please choose another move.");
+                    continue;
+                }
+
+                // Validate move ending positions are within bounds
+                int endX = move.getEndingPosition()[0];
+                int endY = move.getEndingPosition()[1];
+                if (endX < 0 || endX >= board.size || endY < 0 || endY >= board.size) {
+                    System.out.println("Move ending position out of bounds. Please choose another move.");
+                    continue;
+                }
+
+                // Validate jumped pieces
+                /*@ nullable @*/Piece[] jumpedPieces = move.getJumpedPieces(board);
+                if (jumpedPieces != null) {
+                    boolean invalidJump = false;
+                    //@ maintaining i >= 0 && i <= possibleMoves.length;
+                    //@ decreases possibleMoves.length - i;
+                    for (int i = 0; i < jumpedPieces.length; i++) {
+                        if(i>=0)
+                            if (jumpedPieces[i] == null) {
+                                System.out.println("Invalid jumped piece detected. Please choose another move.");
+                                invalidJump = true;
+                                break;
+                            }
+                    }
+                    if (invalidJump) {
+                        continue;
+                    }
+                }
+                // Validate `pieceMoving` coordinates
+                if (pieceMoving.x < 0 || pieceMoving.y < 0 || (long) pieceMoving.x + (long) pieceMoving.y >= Integer.MAX_VALUE) {
+                    System.out.println("Selected piece has invalid coordinates. Please choose another piece.");
+                    continue;
+                }
+                if(pieceMoving.getCoordinates().length != 2 || 0 > pieceMoving.getCoordinates()[0]|| pieceMoving.getCoordinates()[0] >= board.size || 0 > pieceMoving.getCoordinates()[1]||pieceMoving.getCoordinates()[1] >= board.size)
+                    continue;
+                // All validations passed, apply move to board
+                if(board == null)
+                    continue;
+                
+                board.applyMoveToBoard(move, pieceMoving);
+                return board;
                 }
             }
         } 
@@ -70,7 +133,10 @@ public class HumanPlayer extends Player
      * @param possibleMoves An optional Array of possible moves to display while printing the board.
      * The board will display as normal if this is null.
      */
-    private void displayBoard(Board board, Move[] possibleMoves)
+
+
+    //@ assignable System.out.outputText, System.out.eol, System.in;
+    private void displayBoard(Board board, /*@ nullable @*/Move[] possibleMoves)
     {
         // clear the screen for board display
         GameRunner.clearScreen();
@@ -108,6 +174,8 @@ public class HumanPlayer extends Player
                         // use to determine whether to continue and skip printing other things
                         boolean moveFound = false;
                         
+                        //@ maintaining i >= 0 && i <= possibleMoves.length;
+                        //@ decreases possibleMoves.length - i;
                         for (int i = 0; i < possibleMoves.length; i++)
                         {
                             int[] move = possibleMoves[i].getEndingPosition();
@@ -144,6 +212,7 @@ public class HumanPlayer extends Player
      * @param board The board to check against
      * @return The Piece object to be returned (will be an actual piece)
      */
+    //@ assignable System.out.outputText, System.out.eol, System.in;
     private Piece getPieceFromUser(Board board)
     {
         // keep trying again until we get a valid peice chosen
@@ -208,7 +277,11 @@ public class HumanPlayer extends Player
      * @param possibleMoves The list of possible moves the user can request
      * @return The Move object representing the chosen move (may be null if the user chooses to get a new piece)
      */
-    private Move getMoveFromUser(Move[] possibleMoves)
+    //@ requires possibleMoves != null;
+    //@ requires (\forall int i; 0 <= i && i < possibleMoves.length; possibleMoves[i] != null);
+    //@ ensures \result == null || (\exists int i; 0 <= i && i < possibleMoves.length; \result == possibleMoves[i]);
+    //@ assignable System.out.outputText, System.out.eol;
+    private /*@ nullable @*/ Move getMoveFromUser(Move[] possibleMoves)
     {
         int moveNum;
         
@@ -226,11 +299,17 @@ public class HumanPlayer extends Player
                 {
                     return null;
                 }
+                if(moveNum <= Integer.MIN_VALUE)
+                {
+                    return null;
+                }
                 // ensure they enter a move that we printed
                 else if (moveNum > possibleMoves.length)
                     throw new Exception();                    
                                                                 
                 // return the move the user entered (switch to 0-indexed), once we get a valid entry
+                Move move = possibleMoves[moveNum - 1];
+
                 return possibleMoves[moveNum - 1];
             }
             catch (Exception e) // catch incorrect parse or our throw exception
@@ -244,6 +323,9 @@ public class HumanPlayer extends Player
     /**
      * @return Returns a titlecase string representing this player's color
      */
+    //@ ensures this.isWhite<==>\result == "White";
+    //@ ensures !this.isWhite <==> \result == "Black";
+    //@ pure
     private String getColor()
     {
         return isWhite ? "White" : "Black";

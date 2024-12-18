@@ -16,7 +16,7 @@ public class GameRunner
     
     // define an easily accesible "end" variable
     private static boolean endGameNow = false;
-    
+
     public static void main(String[] args)
     {
         // generate basic board and setup
@@ -60,32 +60,30 @@ public class GameRunner
      * @return Returns true if the user wants two-player mode, 
      * else false if they want one-player mode.
      */
+    //@ requires input != null;
+    //@ ensures \result == true || \result == false;
     private static boolean askIfTwoPlayer()
     {       
         // keep asking to get a valid response
+        //@ loop_invariant true; 
         while (true)
         {
-            // display message
-            clearScreen();
-            System.out.println("*******Welcome to checkers!*******\n");
-            System.out.println("Enter 'exit' to exit at any point (or 0 when moving a piece).\n");
-            System.out.println("We offer two game modes:");
-            System.out.println("[1] 1 Player Mode (vs Computer) - EXPERIMENTAL");
-            System.out.println("[2] 2 Player Mode");
-            System.out.println("\nWhich one would you like to play? Enter a number: ");
+            displayWelcomeMessage();
 
             // ask for String, but only accept "1" or "2"
-            String response = input.nextLine();
-            switch (response.trim())
-            {
-                case "1":
-                    return false;
-                case "2":
-                    return true;
-                case "exit":
-                    endGameNow();
-                    return true;
+            String response = input.nextLine().trim();
+
+            if (response.equals("1")) {
+                return false;
+            } else if (response.equals("2")) {
+                return true;
+            } else if (response.equals("exit")) {
+                endGameNow();
+                return true;
             }
+            // Mensagem de erro se entrada inválida
+            System.out.println("Invalid input. Please enter '1', '2', or 'exit'.");
+            continue;
         }
     }
 
@@ -93,6 +91,9 @@ public class GameRunner
      * Determines whether the game has been completed, or is in a stalemate
      * @param board The board to check to determine if we're at an endgame point.
      */
+    //@ requires board.size < Integer.MAX_VALUE && board.size*board.size < Integer.MAX_VALUE;
+    //@ assignable System.out.outputText, System.out.eol;
+    //@ code_java_math
     private static boolean endGame(Board board)
     {
         // have an emergency trigger for endgame
@@ -104,14 +105,18 @@ public class GameRunner
             // the other player has won.
             int movableWhiteNum = 0;
             int movableBlackNum = 0;
+            
+            //@ loop_invariant 0 <= pos && pos <= board.size*board.size;
+            //@ decreases board.size*board.size - pos;
             for (int pos = 0; pos < board.size*board.size; pos++)
             {
                 // make sure the piece exists, and if so sum movable pieces for each color)
-                Piece pieceHere = board.getValueAt(pos);
+                /*@ nullable @*/ Piece pieceHere = board.getValueAt(pos);
                 if (pieceHere != null)
                 {
+                    //@ assume pieceHere.x <= 9 && pieceHere.y <= 9;
                     // only consider piece if it has possible moves
-                    Move[] movesHere = pieceHere.getAllPossibleMoves(board);
+                    /*@ nullable @*/ Move[] movesHere = pieceHere.getAllPossibleMoves(board);
                     if (movesHere != null && movesHere.length > 0)
                     {
                         if (pieceHere.isWhite)
@@ -137,6 +142,18 @@ public class GameRunner
         }
     }
     
+    //@ ensures true;
+    //@ assignable System.out.outputText, System.out.eol;
+    private static void displayWelcomeMessage() {
+        clearScreen();
+        System.out.println("*******Welcome to checkers!*******\n");
+        System.out.println("Enter 'exit' to exit at any point (or 0 when moving a piece).\n");
+        System.out.println("We offer two game modes:");
+        System.out.println("[1] 1 Player Mode (vs Computer) - EXPERIMENTAL");
+        System.out.println("[2] 2 Player Mode");
+        System.out.println("\nWhich one would you like to play? Enter a number: ");
+    }
+
     /**
      * Responsible for quickly ending the game
      */
@@ -148,7 +165,7 @@ public class GameRunner
     /**
      * Clears the terminal screen
      */
-    // @pure
+    //@ assignable System.out.outputText, System.out.eol;
     public static void clearScreen()
     {
     	// see http://stackoverflow.com/a/32008479/3155372
