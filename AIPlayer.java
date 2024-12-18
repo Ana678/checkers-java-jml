@@ -13,6 +13,16 @@ public class AIPlayer extends Player
     // global variables
     //@ spec_public
     boolean isWhite;
+    
+    //@ public invariant (\forall Move m; m != null; 
+    //@                   m.x1 >= 0 && m.x2 >= 0 && m.y1 >= 0 && m.y2 >= 0);
+    //@ public invariant (\forall Move m; m != null; 
+    //@                   (m.x1 + m.x2) < Integer.MAX_VALUE && (m.y1 + m.y2) < Integer.MAX_VALUE);
+
+    //@ public invariant (\forall Piece p; p != null; p.x >= 0 && p.y >= 0); 
+    //@ public invariant (\forall Piece p; p != null; p.x + p.y < Integer.MAX_VALUE); 
+    //@ public invariant (\forall Piece p; p != null; p.x <= 9 && p.y <= 9); 
+
 
     /**
      * Constructor for objects of class AIPlayer.
@@ -37,23 +47,50 @@ public class AIPlayer extends Player
     {
         // create list of possible pieces and their moves
         HashMap<Piece, Move[]> possibleChoices = getPossibleMoves(board);
-        /*@ nullable @*/ Piece furthestBackwardPiece = null;
-        /*@ nullable @*/ Piece furthestForwardPiece = null;
+        
+        Piece furthestBackwardPiece = possibleChoices.keySet().iterator().next();
+        Piece furthestForwardPiece =  possibleChoices.keySet().iterator().next();
 
-        if (!possibleChoices.isEmpty()) {
-
-            // record furthest back and furthest forward peice to alternate between (just assign the first for now)
-            furthestBackwardPiece = possibleChoices.keySet().toArray(new Piece[1])[0]; // convert to array to make it work
-            furthestForwardPiece = possibleChoices.keySet().toArray(new Piece[1])[0];
-            
-        }
         // iterate over our collected possibilites, looking for the best canidate 
         // (based on second answer here: http://stackoverflow.com/questions/1066589/iterate-through-a-hashmap)
         HashMap<Move, Piece> bestMovesPerPiece = getBestMovesForPieces(possibleChoices, furthestBackwardPiece, furthestForwardPiece, board);
 
-        Move bestMove = getBestMove(bestMovesPerPiece, board);
+        if (!bestMovesPerPiece.isEmpty()) {
+            Move absoluteBestMove = getBestMove(bestMovesPerPiece, board);
+           int absoluteBestMoveJumpLength = 0;
+            /*@ nullable @*/ Piece[] jumpedPieces = absoluteBestMove.getJumpedPieces(board);
 
-        return applyBestMove(board, bestMove, bestMovesPerPiece);
+            if (jumpedPieces != null) 
+                absoluteBestMoveJumpLength = jumpedPieces.length; 
+
+            if (absoluteBestMoveJumpLength > 0)
+            {
+                board.applyMoveToBoard(absoluteBestMove, bestMovesPerPiece.get(absoluteBestMove));
+            }
+            else
+            {
+                int randomNum = new Random().nextInt(2);
+                furthestBackwardPiece = bestMovesPerPiece.get(absoluteBestMove);
+                furthestForwardPiece = bestMovesPerPiece.get(absoluteBestMove);
+                if (randomNum == 0)
+                {
+                    /*@ nullable @*/ Move move = getKeyByValue(bestMovesPerPiece, furthestBackwardPiece);
+                    if(move != null)
+                    {
+                        board.applyMoveToBoard(move, furthestBackwardPiece);
+                    }
+                }
+                else
+                {
+                    /*@ nullable @*/ Move move = getKeyByValue(bestMovesPerPiece, furthestForwardPiece);
+                    if(move != null)
+                    {
+                        board.applyMoveToBoard(move, furthestForwardPiece);
+                    }
+                }  
+            }
+        }
+        return board;
     }
     
     /**
@@ -82,7 +119,7 @@ public class AIPlayer extends Player
                 /*@ nullable @*/ Piece piece = board.getValueAt(x, y);
                 if (piece != null && piece.isWhite == this.isWhite)
                 {
-                    Move[] possibleMoves = piece.getAllPossibleMoves(board);
+                    /*@ nullable @*/ Move[] possibleMoves = piece.getAllPossibleMoves(board);
                     if (possibleMoves != null)                        
                         possibleChoices.put(piece, possibleMoves);
                 }
@@ -102,13 +139,15 @@ public class AIPlayer extends Player
     //@ requires possibleChoices != null;
     //@ requires board != null;
     //@ ensures \result != null;
+    //@ assignable \nothing;
+    //@ pure
     private HashMap<Move, Piece> getBestMovesForPieces(HashMap<Piece, Move[]> possibleChoices, 
                                                         Piece furthestBackwardPiece, 
                                                         Piece furthestForwardPiece,
                                                         Board board)
     {
         HashMap<Move, Piece> bestMovesPerPiece = new HashMap<>();
-        
+
         for (Piece piece : possibleChoices.keySet())
         {
             int thisPieceY = piece.getCoordinates()[1];
@@ -128,9 +167,11 @@ public class AIPlayer extends Player
             }
             
             Move[] possibleMoves = possibleChoices.get(piece);
-            Move maxJumpMove = getMaxJumpMove(possibleMoves, board);
-            
-            bestMovesPerPiece.put(maxJumpMove, piece);
+            if(possibleMoves.length > 0){
+                Move maxJumpMove = getMaxJumpMove(possibleMoves, board);
+                
+                bestMovesPerPiece.put(maxJumpMove, piece);
+            }
         }
         
         return bestMovesPerPiece;
@@ -142,21 +183,22 @@ public class AIPlayer extends Player
      * @return The move with the most jumps.
      */
     //@ requires possibleMoves != null && possibleMoves.length > 0;
+    //@ requires (\forall int i; 0 <= i && i < possibleMoves.length; 
+    //@        possibleMoves[i].x1 >= 0 && possibleMoves[i].x2 >= 0 && possibleMoves[i].y1 >= 0 && possibleMoves[i].y2 >= 0);
     //@ requires board != null;
     //@ ensures \result != null;
+    //@ assignable \nothing;
+    //@ pure
     private Move getMaxJumpMove(Move[] possibleMoves, Board board)
     {
         Move maxJumpMove = possibleMoves[0];
         int maxJumpMoveLength = 0;
         
         //@ loop_invariant 0 <= i && i <= possibleMoves.length;
-        //@ loop_invariant (\forall int j; 0 <= j && j < i; 
-        //@    possibleMoves[j].x1 >= 0 && possibleMoves[j].x2 >= 0 && possibleMoves[j].y1 >= 0 && possibleMoves[j].y2 >= 0);
         //@ decreases possibleMoves.length - i;
         for (int i = 0; i < possibleMoves.length; i++)
         {    
-            //@ assert possibleMoves[i].x1 >= 0 && possibleMoves[i].x2 >= 0 && possibleMoves[i].y1 >= 0 && possibleMoves[i].y2 >= 0; 
-
+            
             /*@ nullable @*/ Piece[] jumpedPieces = possibleMoves[i].getJumpedPieces(board);
             if (jumpedPieces != null)
             {
@@ -178,15 +220,21 @@ public class AIPlayer extends Player
      * @return The best overall move.
      */
     //@ requires bestMovesPerPiece != null;
+    //@ requires board != null;
     //@ ensures \result != null;
+    //@ assignable \nothing;
+    //@ pure
     private Move getBestMove(HashMap<Move, Piece> bestMovesPerPiece, Board board)
     {
-        Move absoluteBestMove = bestMovesPerPiece.keySet().toArray(new Move[1])[0];
+        Move absoluteBestMove = bestMovesPerPiece.keySet().iterator().next();
+           
         int absoluteBestMoveJumpLength = 0;
         
         for (Move move : bestMovesPerPiece.keySet())
         {
-            Piece[] jumpedPieces = move.getJumpedPieces(board);
+            //@ assume move.x1 >= 0 && move.x2 >= 0 && move.y1 >= 0 && move.y2 >= 0;
+            //@ assume (move.x1 + move.x2) < Integer.MAX_VALUE && (move.y1 + move.y2) < Integer.MAX_VALUE;
+            /*@ nullable @*/ Piece[] jumpedPieces = move.getJumpedPieces(board);
             if (jumpedPieces != null)
             {
                 int thisBestMoveJumpLength = jumpedPieces.length;
@@ -200,43 +248,6 @@ public class AIPlayer extends Player
         
         return absoluteBestMove;
     }
-
-
-    /**
-     * Apply the best move to the board.
-     * @param board The board to apply the move to.
-     * @param bestMove The best move to apply.
-     * @param bestMovesPerPiece A map of best moves for each piece.
-     * @return The board, modified according to the computer's move.
-     */
-    //@ requires board != null && bestMove != null && bestMovesPerPiece != null;
-    //@ ensures \result == board;
-    private Board applyBestMove(Board board, Move bestMove, HashMap<Move, Piece> bestMovesPerPiece)
-    {
-        int absoluteBestMoveJumpLength = bestMove.getJumpedPieces(board).length;
-        
-        if (absoluteBestMoveJumpLength > 0)
-        {
-            board.applyMoveToBoard(bestMove, bestMovesPerPiece.get(bestMove));
-        }
-        else
-        {
-            int randomNum = new Random().nextInt(2);
-            Piece furthestBackwardPiece = bestMovesPerPiece.get(bestMove);
-            Piece furthestForwardPiece = bestMovesPerPiece.get(bestMove);
-            if (randomNum == 0)
-            {
-                board.applyMoveToBoard(getKeyByValue(bestMovesPerPiece, furthestBackwardPiece), furthestBackwardPiece);
-            }
-            else
-            {
-                board.applyMoveToBoard(getKeyByValue(bestMovesPerPiece, furthestForwardPiece), furthestForwardPiece);
-            }  
-        }
-        
-        return board;
-    }
-
 
     /**
      * Note: copied from http://stackoverflow.com/a/2904266

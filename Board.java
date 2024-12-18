@@ -10,13 +10,11 @@ public class Board
     public /*@ nullable @*/ Piece[][] boardArray;
     public final int size;
     
-    //@ public invariant boardArray != null;
-    //@ public invariant size == boardArray.length;
+    //@ public invariant boardArray != null && size == boardArray.length;
     //@ public invariant size >= 1 && size < Integer.MAX_VALUE && size*size < Integer.MAX_VALUE;
     //@ public invariant (\forall int y; 0 <= y < size; boardArray[y] != null && boardArray[y].length == size);
     //@ public invariant (\forall int y; 0 <= y < size; \type(Piece) == \elemtype(\typeof(boardArray[y])));
     //@ public invariant \type(Piece[]) == \elemtype(\typeof(boardArray));
-
     /**
      * Responsible for generating a brand new board
      * @param size The size of the board (8 for common checkers)
@@ -61,8 +59,8 @@ public class Board
      * Fills the board with pieces in their starting positions.
      * Adds WHITE pieces at the top to start (so white should move first)
      */
-    //@ assignable boardArray;
     //@ requires boardArray != null;
+    //@ assignable boardArray;
     public void setupBoard()
     {
         for (int y = 0; y < size; y++)
@@ -77,8 +75,7 @@ public class Board
                 // ... and black pieces to the bottom in the opposite pattern
                 else if (y >= size - 3 && isCheckerboardSpace(x, y))
                 {
-                    Piece novaPeca = new Piece(x, y, false);
-                    this.boardArray[y][x] = novaPeca;
+                    this.boardArray[y][x] = new Piece(x, y, false);
                 }
             }
         }
@@ -93,12 +90,6 @@ public class Board
     //@ requires piece.getCoordinates().length == 2 && 0 <= piece.getCoordinates()[0] < size && 0 <= piece.getCoordinates()[1] < size;
     //@ requires move.getEndingPosition().length == 2 && 0 <= move.getEndingPosition()[0] < size && 0 <= move.getEndingPosition()[1] < size;
     //@ requires move.getJumpedPieces(this) == null || (\forall int i; 0 <= i && i < move.getJumpedPieces(this).length; move.getJumpedPieces(this)[i] != null);
-    //@ ensures boardArray != null;
-    //@ ensures this.size == boardArray.length;
-    //@ ensures size >= 1 && size < Integer.MAX_VALUE && size * size < Integer.MAX_VALUE;
-    //@ ensures (\forall int y; 0 <= y < size; boardArray[y] != null && boardArray[y].length == size);
-    //@ ensures (\forall int y; 0 <= y < size; \type(Piece) == \elemtype(\typeof(boardArray[y])));
-    //@ ensures \type(Piece[]) == \elemtype(\typeof(boardArray));
     public void applyMoveToBoard(Move move, Piece piece)
     {
         // NOTE: at this point, the starting position of the move (move.getStartingPosition) will not neccesarily
@@ -116,31 +107,23 @@ public class Board
             //@ maintaining 0 <= i && i <= jumpedPieces.length;
             //@ decreases jumpedPieces.length - i;
             for (int i = 0; i < jumpedPieces.length; i++)
-            { 
+            {
                 if (jumpedPieces[i] != null) // apparently this can happen... ?????
                 {
-                    Piece jumpedPiece = jumpedPieces[i];
-                    if(jumpedPiece.x >= 0 && jumpedPiece.y >= 0 && jumpedPiece.x < this.size && jumpedPiece.y < this.size){
-                        this.setValueAt1(jumpedPiece.x, jumpedPiece.y, null);
-                    }
-                    // int jumpedX = jumpedPieces[i].getCoordinates()[0];
-                    // int jumpedY = jumpedPieces[i].getCoordinates()[1];
-
-                    // if (jumpedX < this.size && jumpedY < this.size)
-                    //     this.setValueAt(jumpedX, jumpedY, null);
+                    this.setValueAt(jumpedPieces[i].getCoordinates()[0], jumpedPieces[i].getCoordinates()[1], null);
                 }
             }
         }
         
         // and, move this piece (WE PRESUME that it's this piece) from its old spot (both on board and with the piece itself)
-        this.setValueAt1(moveStartingPos[0], moveStartingPos[1], null);
+        this.setValueAt(moveStartingPos[0], moveStartingPos[1], null);
         piece.moveTo(moveEndingPos[0], moveEndingPos[1]);
         
         // do a favor to the piece and check if it should now be a king (it'll change itself)
         piece.checkIfShouldBeKing(this);
         
         // finally, set the move's destination to the piece we're moving
-        this.setValueAt1(moveEndingPos[0], moveEndingPos[1], piece);
+        this.setValueAt(moveEndingPos[0], moveEndingPos[1], piece);
     }
      
     /**
@@ -152,9 +135,23 @@ public class Board
     //@ requires 0 <= x && x < size && 0 <= y && y < size;
     //@ ensures boardArray[y][x] == piece;
     //@ assignable boardArray[y][x];
-    private void setValueAt1(int x, int y, /*@ nullable @*/ Piece piece)
+    private void setValueAt(int x, int y, /*@ nullable @*/ Piece piece)
     {
         this.boardArray[y][x] = piece;
+    }
+    
+    /**
+     * Sets the space at this number position to the given Piece object.
+     * @param position The number position, zero indexed at top left.
+     * @param piece The Piece to put in this space, but can be null to make the space empty
+     */
+
+    //@ requires 0 <= position < size*size && position < Integer.MAX_VALUE;
+    private void setValueAt(int position, /*@ nullable @*/ Piece piece)
+
+    {
+        int[] coords = getCoordinatesFromPosition(position); // convert position to coordinates and use that
+        this.setValueAt(coords[0], coords[1], piece);
     }
     
     /**
